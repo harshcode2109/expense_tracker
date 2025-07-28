@@ -14,104 +14,62 @@ class _AddExpenseState extends State<AddExpense> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   Category _selectedCategory = Category.food;
-  DateTime? _selectedDate;
 
-  void _submitData() {
-    final enteredTitle = _titleController.text;
-    final enteredAmount = double.tryParse(_amountController.text);
-    final validAmount = enteredAmount != null && enteredAmount > 0;
+  void _submitExpense() {
+    final title = _titleController.text;
+    final amount = double.tryParse(_amountController.text);
 
-    if (enteredTitle.isEmpty || !validAmount || _selectedDate == null) {
-      return;
-    }
+    if (title.isEmpty || amount == null || amount <= 0) return;
 
     final newExpense = Expense(
       id: DateTime.now().toString(),
-      title: enteredTitle,
-      amount: enteredAmount, 
-      date: _selectedDate!,
+      title: title,
+      amount: amount,
+      date: DateTime.now(),
       category: _selectedCategory,
     );
 
     widget.onAddExpense(newExpense);
-    Navigator.of(context).pop(); // close the bottom sheet
-  }
-
-  void _pickDate() async {
-    final now = DateTime.now();
-    final firstDate = DateTime(now.year - 1);
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: firstDate,
-      lastDate: now,
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    }
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            TextField(
-              controller: _amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Amount (₹)'),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  _selectedDate == null
-                      ? 'No Date Chosen!'
-                      : 'Picked Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: _pickDate,
-                  child: const Text('Choose Date'),
-                )
-              ],
-            ),
-            DropdownButton<Category>(
-              value: _selectedCategory,
-              items: Category.values
-                  .map(
-                    (cat) => DropdownMenuItem(
-                      value: cat,
-                      child: Text(cat.name.toUpperCase()),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitData,
-              child: const Text('Add Expense'),
-            ),
-          ],
-        ),
+      padding: MediaQuery.of(context).viewInsets.add(const EdgeInsets.all(16)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(labelText: 'Title'),
+          ),
+          TextField(
+            controller: _amountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Amount'),
+          ),
+          const SizedBox(height: 12),
+          DropdownButton<Category>(
+            value: _selectedCategory,
+            onChanged: (value) {
+              setState(() {
+                _selectedCategory = value!;
+              });
+            },
+            items: Category.values.map((category) {
+              return DropdownMenuItem(
+                value: category,
+                child: Text(category.name),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _submitExpense,
+            child: const Text('Add Expense'),
+          ),
+        ],
       ),
     );
   }

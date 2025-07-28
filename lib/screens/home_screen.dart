@@ -1,27 +1,18 @@
-import 'package:expense_tracker/widgets/add_expense.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/expense.dart';
+import '../data/expense_data.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'package:expense_tracker/widgets/add_expense.dart' as my_widgets;
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  // Temporary list of expenses (we'll store them permanently later)
-  final List<Expense> _expenses = [];
-
-  // Function to add a new expense (we’ll hook it with a form later)
-  void _addExpense(Expense expense) {
-    setState(() {
-      _expenses.add(expense);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final expenseData = context.watch<ExpenseData>();
+    final expenses = expenseData.allExpenses;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Tracker'),
@@ -32,22 +23,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 context: context,
                 isScrollControlled: true,
                 builder: (_) {
-                  return AddExpense(onAddExpense: _addExpense);
+                  return my_widgets.AddExpense(
+                    onAddExpense: (expense) {
+                      expenseData.addExpense(expense);
+                    },
+                  );
                 },
-                // This will open the add expense form late
               );
             },
             icon: const Icon(Icons.add),
           ),
         ],
       ),
-
-      body: _expenses.isEmpty
+      body: expenses.isEmpty
           ? const Center(child: Text('No expenses yet. Add some!'))
           : ListView.builder(
-              itemCount: _expenses.length,
+              itemCount: expenses.length,
               itemBuilder: (context, index) {
-                final expense = _expenses[index];
+                final expense = expenses[index];
                 return Card(
                   child: ListTile(
                     title: Text(expense.title),
